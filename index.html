@@ -544,10 +544,18 @@
             try {
                 let action = isLoginMode ? 'login' : 'register';
                 
+                // Janakan ID Peranti yang unik jika belum ada
+                let deviceId = localStorage.getItem('cikguscan_device_id');
+                if (!deviceId) {
+                    deviceId = crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('cikguscan_device_id', deviceId);
+                }
+                
                 let payload = {
                     action: action,
                     email: email,
-                    password: pass
+                    password: pass,
+                    deviceId: deviceId
                 };
 
                 let response = await fetch(SCRIPT_URL, {
