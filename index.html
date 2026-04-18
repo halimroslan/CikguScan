@@ -827,6 +827,15 @@
         // FUNGSI TUKAR TAB DAN SUB-TAB
         // ==========================================
         function tukarTab(idTab) {
+            // --- KUNCI BAHAGIAN ANALISIS UNTUK PENGGUNA BUKAN PRO ---
+            if (idTab === 'analisis') {
+                let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
+                if (proBulan <= 0) {
+                    paparAlert("Akses Disekat (Ciri Pro 👑)", "Maaf cikgu, bahagian Analisis Keseluruhan (Individu, Kelas & Item) adalah khas untuk pengguna Pro sahaja. Sila langgan untuk menggunakan fungsi ini.");
+                    return; // Hentikan fungsi tukar tab
+                }
+            }
+
             document.querySelectorAll('.tab-content').forEach(el => {
                 el.classList.add('hidden');
                 el.classList.remove('flex', 'animate-fade-in'); 
