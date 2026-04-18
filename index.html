@@ -527,14 +527,12 @@
 
             try {
                 let action = isLoginMode ? 'login' : 'register';
-                let formData = new URLSearchParams();
-                formData.append('action', action);
-                formData.append('email', email);
-                formData.append('password', pass);
+                
+                // Gunakan kaedah GET untuk elakkan isu CORS Google Apps Script
+                let requestUrl = `${SCRIPT_URL}?action=${action}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
 
-                let response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
+                let response = await fetch(requestUrl, {
+                    method: 'GET'
                 });
 
                 let result = await response.json();
@@ -552,7 +550,7 @@
                     paparAlert(isLoginMode ? "Log Masuk Gagal" : "Pendaftaran Gagal", result.message);
                 }
             } catch (error) {
-                paparAlert("Ralat Sistem", "Gagal berhubung dengan pangkalan data utama. Sila pastikan URL Google Script betul.");
+                paparAlert("Ralat Sistem", "Gagal berhubung dengan pangkalan data utama. Sila pastikan URL Google Script betul dan telah di-deploy semula.");
                 console.error(error);
             } finally {
                 btn.innerText = textAsal;
