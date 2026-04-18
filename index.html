@@ -528,11 +528,18 @@
             try {
                 let action = isLoginMode ? 'login' : 'register';
                 
-                // Gunakan kaedah GET untuk elakkan isu CORS Google Apps Script
-                let requestUrl = `${SCRIPT_URL}?action=${action}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+                let payload = {
+                    action: action,
+                    email: email,
+                    password: pass
+                };
 
-                let response = await fetch(requestUrl, {
-                    method: 'GET'
+                let response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 let result = await response.json();
