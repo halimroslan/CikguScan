@@ -314,7 +314,7 @@
 
                     <div class="mt-6 flex flex-col gap-3">
                         <button onclick="tangkapDanTanda(false)" class="w-full bg-apple-blue text-white font-medium py-3.5 rounded-full shadow-apple-sm hover:bg-apple-blueHover active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Imbas Manual
                         </button>
                     </div>
@@ -478,6 +478,8 @@
     </div>
 
     <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTos7a4OaaZ3aN22XeP3ZxK9PitM4nBdq9kCvY8xSSE_MHlkuKxHZnRgbbTqvhZLL4aA/exec";
+        
         // ==========================================
         // VARIABEL GLOBAL UTAMA
         // ==========================================
@@ -660,9 +662,6 @@
             let pass = document.getElementById('auth-password').value;
             let btn = document.getElementById('auth-btn');
 
-            // --- MASUKKAN URL GOOGLE APPS SCRIPT CIKGU DI BAWAH INI ---
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTos7a4OaaZ3aN22XeP3ZxK9PitM4nBdq9kCvY8xSSE_MHlkuKxHZnRgbbTqvhZLL4aA/exec";
-
             let textAsal = btn.innerText;
             btn.innerText = "Pengesahan";
             btn.disabled = true;
@@ -671,7 +670,6 @@
             try {
                 let action = isLoginMode ? 'login' : 'register';
                 
-                // Janakan ID Peranti yang unik jika belum ada
                 let deviceId = localStorage.getItem('cikguscan_device_id');
                 if (!deviceId) {
                     deviceId = crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Math.random().toString(36).substr(2, 9);
@@ -697,6 +695,13 @@
                     if (result.proBulan !== undefined) {
                         localStorage.setItem('cikguscan_pro_bulan_' + email, result.proBulan);
                     }
+                    if (result.trialStart) {
+                        localStorage.setItem('cikguscan_trial_start_' + email, result.trialStart);
+                    } else {
+                        localStorage.removeItem('cikguscan_trial_start_' + email);
+                    }
+                    
+                    localStorage.removeItem('cikguscan_trial_finished_' + email);
 
                     if (!isLoginMode) {
                         paparAlert("Pendaftaran Berjaya!", "Sila semak e-mel anda (termasuk folder spam) untuk rujukan kata laluan pada masa akan datang.");
@@ -726,7 +731,6 @@
         // INIT DATA KHUSUS UNTUK PENGGUNA
         // ==========================================
         function initAppContent() {
-            // Load settings specific to logged-in user
             let savedSoalan = localStorage.getItem('cikguscan_jumlah_' + currentUser);
             if(savedSoalan) {
                 JUMLAH_SOALAN = parseInt(savedSoalan);
@@ -739,7 +743,6 @@
             let savedSkema = localStorage.getItem('cikguscan_skema_' + currentUser);
             if (savedSkema) {
                 skemaJawapan = JSON.parse(savedSkema);
-                // Handle edge case where saved schema length doesn't match JUMLAH_SOALAN
                 if(skemaJawapan.length !== JUMLAH_SOALAN) {
                     let temp = Array(JUMLAH_SOALAN).fill(null);
                     for(let i=0; i < Math.min(skemaJawapan.length, JUMLAH_SOALAN); i++){ temp[i] = skemaJawapan[i]; }
@@ -753,7 +756,7 @@
             updatePageOrientation();
             janaBorangSkema();
             janaBorangCetak();
-            tukarTab('skema'); // Set tab lalai
+            tukarTab('skema'); 
         }
 
         // ==========================================
@@ -2237,15 +2240,13 @@
             if (geo.layout === '10' || geo.layout === '20') {
                 cropY = geo.boxY + paddingY + (headerHeight * 0.22); 
                 cropH = headerHeight * 0.34; 
-                // Diselaraskan supaya sama zoom macam 30/40 soalan
-                cropX = geo.boxX - (geo.boxW * 0.05); // Anjak sedikit sahaja ke kiri
-                cropW = geo.boxW * 0.70; // Lebar dikecilkan supaya auto zoom in dan tak masuk marker
+                cropX = geo.boxX - (geo.boxW * 0.05); 
+                cropW = geo.boxW * 0.70; 
             } else {
-                // Layout 30 & 40: Kotak nama di bahagian bawah header
                 cropY = geo.boxY + paddingY + (headerHeight * 0.55); 
                 cropH = headerHeight * 0.45; 
-                cropX = geo.boxX - (geo.boxW * 0.05); // Anjak sedikit ke kiri untuk fokus pada pangkal nama
-                cropW = geo.boxW * 0.70; // Lebar dikecilkan supaya tak masuk kotak Kelas (auto zoom in)
+                cropX = geo.boxX - (geo.boxW * 0.05); 
+                cropW = geo.boxW * 0.70; 
             }
 
             cropY = Math.max(0, cropY); cropX = Math.max(0, cropX);
@@ -2256,7 +2257,6 @@
             canvasNama.getContext('2d').drawImage(sumberCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
             let imejNamaDataUrl = canvasNama.toDataURL('image/jpeg', 0.5);
 
-            // Mampatkan imej OMR Penuh supaya storage pelayar tak cepat penuh (Resize width ke 500px)
             let canvasKecil = document.createElement('canvas');
             let scaleDown = 500 / cw;
             canvasKecil.width = 500;
@@ -2272,8 +2272,22 @@
             
             // Check if we need to start the trial now
             if (proBulan <= 0 && !trialFinished && !trialStart) {
-                trialStart = Date.now();
+                trialStart = Date.now().toString();
                 localStorage.setItem('cikguscan_trial_start_' + currentUser, trialStart);
+                
+                // --- HANTAR REKOD TRIAL KE GOOGLE SHEET ---
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        action: 'start_trial',
+                        email: currentUser,
+                        trialStart: trialStart
+                    })
+                }).then(r => r.json()).catch(err => console.log("Gagal rekod trial", err));
+
                 startTrialCountdown();
                 
                 let statusEl = document.getElementById('header-user-status');
@@ -2307,22 +2321,20 @@
                 idRekodSemasa = rekodBaharu.id;
 
                 if (idUntukGanti) {
-                    // Kalau Mod Ganti, cari index asal dan gantikan
                     let idx = senaraiRekodKelas.findIndex(r => r.id === idUntukGanti);
                     if (idx > -1) {
                         senaraiRekodKelas[idx] = rekodBaharu;
                     } else {
                         senaraiRekodKelas.unshift(rekodBaharu);
                     }
-                    idUntukGanti = null; // reset semula
+                    idUntukGanti = null; 
                 } else {
-                    // Kalau Mod Biasa, letak atas sekali
                     senaraiRekodKelas.unshift(rekodBaharu);
                 }
                 
                 simpanRekodLokal();
             } else {
-                idRekodSemasa = null; // Free user tidak direkod
+                idRekodSemasa = null; 
             }
             
             paparKeputusan(markah, butiran);
