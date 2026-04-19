@@ -162,7 +162,7 @@
                     <input type="password" id="auth-password" required minlength="6" placeholder="••••••••" class="w-full bg-[#f1f1f2] border border-[#e5e5ea] rounded-2xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-apple-blue/50 focus:bg-white transition-all font-medium text-apple-text text-base">
                 </div>
                 <button type="submit" id="auth-btn" class="w-full bg-apple-text text-white font-semibold text-lg py-4 rounded-2xl shadow-apple-sm hover:bg-black active:scale-[0.98] transition-all mt-4">
-                    Teruskan ke Sistem
+                    Log Masuk
                 </button>
             </form>
 
@@ -596,12 +596,14 @@
                 let isTrialActive = false;
                 let secondsLeft = 0;
 
-                if (proBulan <= 0 && !trialFinished && trialStart) {
+                if (proBulan <= 0 && trialStart) {
                     let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
                     secondsLeft = 3600 - elapsed;
 
                     if (secondsLeft > 0) {
                         isTrialActive = true;
+                        trialFinished = false; 
+                        localStorage.setItem('cikguscan_trial_finished_' + currentUser, 'false');
                     } else {
                         localStorage.setItem('cikguscan_trial_finished_' + currentUser, 'true');
                         trialFinished = true;
@@ -625,11 +627,6 @@
                         statusEl.classList.add('text-orange-500');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
                         startTrialCountdown();
-                    } else if (!trialFinished) {
-                        statusEl.innerText = "AKAUN (PERCUMA)";
-                        statusEl.classList.remove('text-apple-blue', 'text-orange-500');
-                        statusEl.classList.add('text-apple-textMuted');
-                        if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
                     } else {
                         statusEl.innerText = "AKAUN (PERCUMA)";
                         statusEl.classList.remove('text-apple-blue', 'text-orange-500');
@@ -650,9 +647,9 @@
 
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "Log Masuk" : "Daftar Akaun Baru";
+            document.getElementById('auth-title').innerText = isLoginMode ? "Log Masuk" : "Dakar Akaun";
             document.getElementById('auth-subtitle').innerText = isLoginMode ? "Sila masukkan e-mel dan kata laluan anda." : "E-mel ini akan digunakan untuk log masuk dan menerima salinan kata laluan.";
-            document.getElementById('auth-btn').innerText = isLoginMode ? "Teruskan ke Sistem" : "Daftar & Mula Guna";
+            document.getElementById('auth-btn').innerText = isLoginMode ? "Log Masuk" : "Daftar";
             document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "Belum ada akaun? Daftar percuma." : "Sudah ada akaun? Log masuk di sini.";
         }
 
