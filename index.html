@@ -334,19 +334,19 @@
                     </div>
                     
                     <div class="apple-card bg-white rounded-[32px] p-8 text-center mb-6 shadow-apple">
-                        <p class="text-apple-textMuted text-sm font-semibold tracking-widest uppercase">Markah Diperoleh</p>
-                        <div class="flex items-baseline justify-center gap-2 mt-2">
-                            <span class="text-7xl font-bold tracking-tighter text-apple-text" id="skor-markah">0</span>
-                            <span class="text-2xl font-medium text-apple-textMuted" id="skor-total">/40</span>
-                        </div>
-                        <div class="mt-4 inline-block bg-apple-bg px-4 py-1.5 rounded-full flex items-center justify-center mx-auto w-max gap-2">
-                            <p class="text-base font-semibold text-apple-blue" id="skor-peratus">0%</p>
-                            <span class="text-gray-300 font-bold">|</span>
-                            <p class="text-sm font-medium text-apple-textMuted" id="skor-kelas-label">Kelas Umum</p>
-                        </div>
+                    <p class="text-apple-textMuted text-sm font-semibold tracking-widest uppercase">Markah Diperoleh</p>
+                    <div class="flex items-baseline justify-center gap-2 mt-2">
+                        <span class="text-7xl font-bold tracking-tighter text-apple-text" id="skor-markah">0</span>
+                        <span class="text-2xl font-medium text-apple-textMuted" id="skor-total">/40</span>
                     </div>
+                    <div class="mt-4 inline-block bg-apple-bg px-4 py-1.5 rounded-full flex items-center justify-center mx-auto w-max gap-2">
+                        <p class="text-base font-semibold text-apple-blue" id="skor-peratus">0%</p>
+                        <span class="text-gray-300 font-bold" id="skor-separator">|</span>
+                        <p class="text-sm font-medium text-apple-textMuted" id="skor-kelas-label">Kelas Umum</p>
+                    </div>
+                </div>
 
-                    <div class="apple-card bg-white rounded-[24px] p-6 shadow-apple mb-6">
+                <div class="apple-card bg-white rounded-[24px] p-6 shadow-apple mb-6">
                         <h3 class="font-semibold text-lg mb-4 text-apple-text">Imbasan Imej</h3>
                         <div class="rounded-2xl overflow-hidden bg-apple-bg border border-apple-border/50">
                             <canvas id="canvas-debug" class="w-full h-auto"></canvas>
@@ -371,7 +371,7 @@
                         <button onclick="tukarTab('imbas')" class="flex-[2] bg-apple-text text-white font-medium text-lg py-4 rounded-full shadow-apple-sm hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
                             Imbas Seterusnya
                         </button>
-                        <button onclick="mintaSahkanPadamSemasa()" class="w-16 flex-shrink-0 bg-red-50 border border-red-200 text-red-500 flex items-center justify-center rounded-full shadow-apple-sm hover:bg-red-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300" title="Padam Imbasan Ini">
+                        <button id="btn-padam-semasa" onclick="mintaSahkanPadamSemasa()" class="w-16 flex-shrink-0 bg-red-50 border border-red-200 text-red-500 flex items-center justify-center rounded-full shadow-apple-sm hover:bg-red-100 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300" title="Padam Imbasan Ini">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
@@ -502,10 +502,16 @@
                         statusEl.innerText = "AKAUN (PRO)";
                         statusEl.classList.remove('text-apple-textMuted');
                         statusEl.classList.add('text-apple-blue');
+                        
+                        let btnKelas = document.getElementById('btn-pilih-kelas');
+                        if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
                     } else {
                         statusEl.innerText = "AKAUN (PERCUMA)";
                         statusEl.classList.remove('text-apple-blue');
                         statusEl.classList.add('text-apple-textMuted');
+                        
+                        let btnKelas = document.getElementById('btn-pilih-kelas');
+                        if (btnKelas) btnKelas.parentElement.classList.add('hidden');
                     }
                 }
 
@@ -891,9 +897,16 @@
                     banner.classList.add('hidden');
                 }
                 
-                if (kelasSemasa === "Kelas Umum" || kelasSemasa.trim() === "") {
-                    bukaModalKelas();
+                let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
+                
+                if (proBulan > 0) {
+                    if (kelasSemasa === "Kelas Umum" || kelasSemasa.trim() === "") {
+                        bukaModalKelas();
+                    } else {
+                        setTimeout(() => mulakanKamera(), 100);
+                    }
                 } else {
+                    // Free user tak perlu masukkan kelas
                     setTimeout(() => mulakanKamera(), 100);
                 }
             } else {
@@ -1979,45 +1992,75 @@
 
             // Simpan Rekod
             let peratus = (markah / JUMLAH_SOALAN) * 100;
-            let rekodBaharu = {
-                id: idUntukGanti ? idUntukGanti : Date.now(),
-                markah: markah,
-                jumlah: JUMLAH_SOALAN,
-                peratus: parseFloat(peratus.toFixed(1)),
-                imejNama: imejNamaDataUrl,
-                imejPenuh: imejPenuhDataUrl,
-                butiran: butiran,
-                kelas: kelasSemasa
-            };
+            let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
+            
+            if (proBulan > 0) {
+                let rekodBaharu = {
+                    id: idUntukGanti ? idUntukGanti : Date.now(),
+                    markah: markah,
+                    jumlah: JUMLAH_SOALAN,
+                    peratus: parseFloat(peratus.toFixed(1)),
+                    imejNama: imejNamaDataUrl,
+                    imejPenuh: imejPenuhDataUrl,
+                    butiran: butiran,
+                    kelas: kelasSemasa
+                };
 
-            idRekodSemasa = rekodBaharu.id;
+                idRekodSemasa = rekodBaharu.id;
 
-            if (idUntukGanti) {
-                // Kalau Mod Ganti, cari index asal dan gantikan
-                let idx = senaraiRekodKelas.findIndex(r => r.id === idUntukGanti);
-                if (idx > -1) {
-                    senaraiRekodKelas[idx] = rekodBaharu;
+                if (idUntukGanti) {
+                    // Kalau Mod Ganti, cari index asal dan gantikan
+                    let idx = senaraiRekodKelas.findIndex(r => r.id === idUntukGanti);
+                    if (idx > -1) {
+                        senaraiRekodKelas[idx] = rekodBaharu;
+                    } else {
+                        senaraiRekodKelas.unshift(rekodBaharu);
+                    }
+                    idUntukGanti = null; // reset semula
                 } else {
+                    // Kalau Mod Biasa, letak atas sekali
                     senaraiRekodKelas.unshift(rekodBaharu);
                 }
-                idUntukGanti = null; // reset semula
+                
+                simpanRekodLokal();
             } else {
-                // Kalau Mod Biasa, letak atas sekali
-                senaraiRekodKelas.unshift(rekodBaharu);
+                idRekodSemasa = null; // Free user tidak direkod
             }
             
-            simpanRekodLokal();
             paparKeputusan(markah, butiran);
         }
 
         function paparKeputusan(markah, butiran) {
             tukarTab('keputusan'); 
             let peratus = (markah / JUMLAH_SOALAN) * 100;
+            let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
             
             document.getElementById('skor-markah').innerText = markah;
             document.getElementById('skor-total').innerText = `/${JUMLAH_SOALAN}`;
             document.getElementById('skor-peratus').innerText = `${peratus.toFixed(1)}%`;
-            document.getElementById('skor-kelas-label').innerText = kelasSemasa;
+            
+            let labelKelas = document.getElementById('skor-kelas-label');
+            let separatorKelas = document.getElementById('skor-separator');
+            let btnPadamSemasa = document.getElementById('btn-padam-semasa');
+            
+            if (proBulan > 0) {
+                if(labelKelas) {
+                    labelKelas.innerText = kelasSemasa;
+                    labelKelas.classList.remove('hidden');
+                }
+                if(separatorKelas) separatorKelas.classList.remove('hidden');
+                if(btnPadamSemasa) {
+                    btnPadamSemasa.classList.remove('hidden');
+                    btnPadamSemasa.classList.add('flex');
+                }
+            } else {
+                if(labelKelas) labelKelas.classList.add('hidden');
+                if(separatorKelas) separatorKelas.classList.add('hidden');
+                if(btnPadamSemasa) {
+                    btnPadamSemasa.classList.add('hidden');
+                    btnPadamSemasa.classList.remove('flex');
+                }
+            }
 
             let senaraiHtml = butiran.map(b => {
                 let ikon = b.betul ? 
