@@ -294,7 +294,7 @@
 
                     <div class="mt-6 flex flex-col gap-3">
                         <button onclick="tangkapDanTanda(false)" class="w-full bg-apple-blue text-white font-medium py-3.5 rounded-full shadow-apple-sm hover:bg-apple-blueHover active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Imbas Manual
                         </button>
                     </div>
@@ -522,9 +522,15 @@
                 document.getElementById('header-user-email').innerText = currentUser;
 
                 let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-                let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-                let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
                 
+                // Daftar masa percubaan jika belum wujud secara lokal untuk pengguna baharu/sedia ada
+                let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
+                if (!regTimeStr && proBulan <= 0) {
+                    regTimeStr = new Date().toISOString();
+                    localStorage.setItem('cikguscan_reg_time_' + currentUser, regTimeStr);
+                }
+
+                let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
                 let isTrial = false;
 
                 if (proBulan <= 0) {
@@ -630,9 +636,12 @@
                     if (result.proBulan !== undefined) {
                         localStorage.setItem('cikguscan_pro_bulan_' + email, result.proBulan);
                     }
-                    if (result.regTime !== undefined) {
-                        localStorage.setItem('cikguscan_reg_time_' + email, result.regTime);
+                    
+                    // Pastikan tarikh bermulanya langganan dicatat dalam peranti supaya trial boleh dikira
+                    if (!localStorage.getItem('cikguscan_reg_time_' + email)) {
+                        localStorage.setItem('cikguscan_reg_time_' + email, new Date().toISOString());
                     }
+
                     if (!isLoginMode) {
                         paparAlert("Pendaftaran Berjaya!", "Sila semak e-mel anda (termasuk folder spam) untuk rujukan kata laluan pada masa akan datang.");
                     }
