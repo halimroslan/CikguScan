@@ -428,7 +428,9 @@
         <div class="bg-white w-full max-w-sm rounded-[24px] p-6 shadow-2xl flex flex-col text-center border border-apple-border/30">
             <h3 class="text-lg font-bold text-apple-text mb-2" id="alert-title">Perhatian</h3>
             <p class="text-sm text-apple-textMuted mb-6" id="alert-msg"></p>
-            <button onclick="tutupAlert()" class="bg-apple-blue text-white py-3 rounded-[14px] font-medium hover:bg-apple-blueHover transition-all active:scale-[0.98]">Selesai</button>
+            <div id="alert-btn-container" class="w-full flex flex-col gap-3">
+                <button onclick="tutupAlert()" class="bg-apple-blue text-white py-3 rounded-[14px] font-medium hover:bg-apple-blueHover transition-all active:scale-[0.98]">Selesai</button>
+            </div>
         </div>
     </div>
 
@@ -639,9 +641,22 @@
         // ==========================================
         // PENGURUSAN MODAL CUSTOM (Ganti Alert/Confirm)
         // ==========================================
-        function paparAlert(title, msg) {
+        function paparAlert(title, msg, isProAlert = false) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = msg;
+            
+            let btnContainer = document.getElementById('alert-btn-container');
+            if(isProAlert) {
+                btnContainer.innerHTML = `
+                    <button onclick="tutupAlert()" class="w-full bg-apple-text text-white py-3 rounded-[14px] font-medium hover:bg-black transition-all active:scale-[0.98]">Tutup</button>
+                    <a href="https://forms.gle/JHdycPrpD3MRhqHo6" target="_blank" class="w-full bg-apple-blue text-white py-3 rounded-[14px] font-medium hover:bg-apple-blueHover transition-all active:scale-[0.98] flex items-center justify-center">Langgan Pro</a>
+                `;
+            } else {
+                btnContainer.innerHTML = `
+                    <button onclick="tutupAlert()" class="w-full bg-apple-blue text-white py-3 rounded-[14px] font-medium hover:bg-apple-blueHover transition-all active:scale-[0.98]">Selesai</button>
+                `;
+            }
+
             document.getElementById('modal-alert').classList.remove('hidden');
             document.getElementById('modal-alert').classList.add('flex');
         }
@@ -860,7 +875,7 @@
             if (idTab === 'analisis') {
                 let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
                 if (proBulan <= 0) {
-                    paparAlert("Akses Terhad.", "Khas langganan Pro sahaja.");
+                    paparAlert("Akses Terhad.", "Khas langganan Pro sahaja.", true);
                     return; // Hentikan fungsi tukar tab
                 }
             }
