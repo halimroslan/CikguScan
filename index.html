@@ -532,7 +532,7 @@
 
                 let now = Date.now();
                 let elap = Math.floor((now - start) / 1000);
-                let left = 30 - elap;
+                let left = 3600 - elap;
 
                 let statusEl = document.getElementById('header-user-status');
                 let btnKelas = document.getElementById('btn-pilih-kelas');
@@ -546,10 +546,12 @@
                     document.getElementById('auth-view').classList.add('flex');
                     document.getElementById('main-app-view').classList.add('hidden');
                     document.getElementById('auth-password').value = '';
-                    paparAlert("Tempoh Cubaan Tamat ⏱️", "Masa 30 saat percubaan Pro telah tamat. Anda dilog keluar secara automatik. Sila log masuk semula untuk meneruskan dengan akaun Percuma.", true);
+                    paparAlert("Tempoh Cubaan Tamat ⏱️", "Masa 60 minit percubaan Pro telah tamat. Anda dilog keluar secara automatik. Sila log masuk semula untuk meneruskan dengan akaun Percuma.", true);
                 } else {
                     if (statusEl) {
-                        statusEl.innerText = `CUBAAN PRO (${left}s)`;
+                        let m = Math.floor(left / 60);
+                        let s = left % 60;
+                        statusEl.innerText = `CUBAAN PRO (${m}m ${s}s)`;
                         statusEl.classList.remove('text-apple-textMuted', 'text-apple-blue');
                         statusEl.classList.add('text-orange-500');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
@@ -594,7 +596,7 @@
 
                 if (proBulan <= 0 && !trialFinished && trialStart) {
                     let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
-                    secondsLeft = 30 - elapsed;
+                    secondsLeft = 3600 - elapsed;
 
                     if (secondsLeft > 0) {
                         isTrialActive = true;
@@ -614,7 +616,9 @@
                         statusEl.classList.add('text-apple-blue');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
                     } else if (isTrialActive) {
-                        statusEl.innerText = `CUBAAN PRO (${secondsLeft}s)`;
+                        let m = Math.floor(secondsLeft / 60);
+                        let s = secondsLeft % 60;
+                        statusEl.innerText = `CUBAAN PRO (${m}m ${s}s)`;
                         statusEl.classList.remove('text-apple-textMuted', 'text-apple-blue');
                         statusEl.classList.add('text-orange-500');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
@@ -987,7 +991,7 @@
             let isTrialActive = false;
             if (proBulan <= 0 && !trialFinished && trialStart) {
                 let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
-                if (elapsed < 30) isTrialActive = true;
+                if (elapsed < 3600) isTrialActive = true;
             }
 
             // --- KUNCI BAHAGIAN ANALISIS UNTUK PENGGUNA BUKAN PRO & BUKAN TRIAL ---
@@ -2270,7 +2274,7 @@
                 let statusEl = document.getElementById('header-user-status');
                 let btnKelas = document.getElementById('btn-pilih-kelas');
                 if (statusEl) {
-                    statusEl.innerText = `CUBAAN PRO (30s)`;
+                    statusEl.innerText = `CUBAAN PRO (60m 0s)`;
                     statusEl.classList.remove('text-apple-textMuted', 'text-apple-blue');
                     statusEl.classList.add('text-orange-500');
                     if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
@@ -2280,7 +2284,7 @@
             let isTrialActive = false;
             if (proBulan <= 0 && !trialFinished && trialStart) {
                 let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
-                if (elapsed < 30) isTrialActive = true;
+                if (elapsed < 3600) isTrialActive = true;
             }
             
             if (proBulan > 0 || isTrialActive) {
@@ -2329,7 +2333,7 @@
             let isTrialActive = false;
             if (proBulan <= 0 && !trialFinished && trialStart) {
                 let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
-                if (elapsed < 30) isTrialActive = true;
+                if (elapsed < 3600) isTrialActive = true;
             }
             
             document.getElementById('skor-markah').innerText = markah;
