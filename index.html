@@ -276,7 +276,7 @@
                         <p class="text-sm text-apple-textMuted mb-8 max-w-sm mx-auto">
                             <span class="text-xs block opacity-80" id="label-print-desc"></span>
                         </p>
-                        <button onclick="window.print()" class="w-full sm:w-auto px-8 bg-apple-blue text-white font-medium text-lg py-3.5 rounded-full shadow-apple-sm hover:bg-apple-blueHover hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
+                        <button onclick="cetakBorangOMR()" class="w-full sm:w-auto px-8 bg-apple-blue text-white font-medium text-lg py-3.5 rounded-full shadow-apple-sm hover:bg-apple-blueHover hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
                             Cetak Kertas OMR
                         </button>
                     </div>
@@ -314,7 +314,7 @@
 
                     <div class="mt-6 flex flex-col gap-3">
                         <button onclick="tangkapDanTanda(false)" class="w-full bg-apple-blue text-white font-medium py-3.5 rounded-full shadow-apple-sm hover:bg-apple-blueHover active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Imbas Manual
                         </button>
                     </div>
@@ -1436,11 +1436,29 @@
         }
 
         function cetakSkema() {
+            const originalTitle = document.title;
+            document.title = "CikguScan OMR Skema";
+
             updatePageOrientation('omr');
             janaBorangSkemaOMR();
             document.body.classList.add('mode-cetak-skema');
             window.print();
-            setTimeout(() => { document.body.classList.remove('mode-cetak-skema'); }, 500);
+            
+            setTimeout(() => { 
+                document.body.classList.remove('mode-cetak-skema'); 
+                document.title = originalTitle;
+            }, 500);
+        }
+
+        function cetakBorangOMR() {
+            const originalTitle = document.title;
+            document.title = `CikguScan OMR ${JUMLAH_SOALAN} soalan`;
+
+            window.print();
+
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 500);
         }
 
         function janaBorangSkemaOMR() {
