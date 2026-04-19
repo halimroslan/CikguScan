@@ -58,21 +58,25 @@
                 display: none !important;
             }
 
-            body:not(.mode-cetak-skema) #tab-skema,
-            body:not(.mode-cetak-skema) #tab-imbas,
-            body:not(.mode-cetak-skema) #tab-keputusan,
-            body:not(.mode-cetak-skema) #tab-analisis {
+            /* Default Print (Borang OMR) */
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #tab-skema,
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #tab-imbas,
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #tab-keputusan,
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #tab-analisis,
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #cetakan-analisis-container {
                 display: none !important;
             }
-            body:not(.mode-cetak-skema) #tab-cetak {
+            body:not(.mode-cetak-skema):not(.mode-cetak-analisis) #tab-cetak {
                 display: block !important;
                 visibility: visible !important;
             }
 
+            /* Mod Cetak Skema */
             body.mode-cetak-skema #tab-cetak,
             body.mode-cetak-skema #tab-imbas,
             body.mode-cetak-skema #tab-keputusan,
             body.mode-cetak-skema #tab-analisis,
+            body.mode-cetak-skema #cetakan-analisis-container,
             body.mode-cetak-skema button,
             body.mode-cetak-skema .bg-apple-bg,
             body.mode-cetak-skema h2.tajuk-skema,
@@ -82,11 +86,27 @@
             body.mode-cetak-skema #tab-skema {
                 display: block !important;
             }
-            
             body.mode-cetak-skema #cetakan-skema-omr-container {
                 display: block !important;
                 visibility: visible !important;
             }
+
+            /* Mod Cetak Analisis */
+            body.mode-cetak-analisis #tab-cetak,
+            body.mode-cetak-analisis #tab-imbas,
+            body.mode-cetak-analisis #tab-keputusan,
+            body.mode-cetak-analisis #tab-analisis,
+            body.mode-cetak-analisis #tab-skema {
+                display: none !important;
+            }
+            body.mode-cetak-analisis #cetakan-analisis-container {
+                display: block !important;
+                visibility: visible !important;
+            }
+            body.mode-cetak-analisis .print-page-break { page-break-before: always; }
+            body.mode-cetak-analisis table { width: 100% !important; border-collapse: collapse !important; }
+            body.mode-cetak-analisis th, body.mode-cetak-analisis td { border: 1px solid #d2d2d7 !important; padding: 8px !important; }
+            body.mode-cetak-analisis .border-b, body.mode-cetak-analisis .border-r { border-color: #d2d2d7 !important; }
 
             .max-w-2xl, main, .min-h-screen, .apple-card {
                 max-width: 100% !important;
@@ -325,7 +345,18 @@
                     <div class="apple-card bg-[#f1f1f2] border border-[#e5e5ea] rounded-[24px] overflow-hidden shadow-inner flex flex-col p-2 gap-2 min-h-[300px]" id="senarai-analisis">
                         <!-- Data dari localStorage akan dilukis di sini mengikut sub-tab -->
                     </div>
+
+                    <!-- BUTANG EKSPORT ANALISIS PDF -->
+                    <div class="mt-6 w-full no-print">
+                        <button onclick="eksportPDF()" class="w-full bg-white border border-apple-border text-apple-blue font-bold py-4 rounded-full shadow-apple-sm hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Eksport Analisis (PDF)
+                        </button>
+                    </div>
                 </div>
+
+                <!-- BEKAS CETAKAN ANALISIS PDF (HIDDEN SECARA LALAI) -->
+                <div id="cetakan-analisis-container" class="hidden w-full mx-auto print:block print:p-8 bg-white text-apple-text"></div>
 
                 <!-- TAB: KEPUTUSAN (Paparan sementara selepas imbas) -->
                 <div id="tab-keputusan" class="tab-content hidden">
@@ -603,7 +634,7 @@
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTos7a4OaaZ3aN22XeP3ZxK9PitM4nBdq9kCvY8xSSE_MHlkuKxHZnRgbbTqvhZLL4aA/exec";
 
             let textAsal = btn.innerText;
-            btn.innerText = "Sedang Menyemak...";
+            btn.innerText = "Pengesahan";
             btn.disabled = true;
             btn.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -1242,6 +1273,95 @@
             htmlTable += `</tbody></table></div>`;
             return htmlTable;
         }
+        
+        function eksportPDF() {
+            let filterValue = document.getElementById('filter-kelas-dropdown').value || 'Semua';
+            let filteredRecords = senaraiRekodKelas;
+            if (filterValue !== 'Semua') {
+                filteredRecords = senaraiRekodKelas.filter(r => (r.kelas || 'Kelas Umum') === filterValue);
+            }
+
+            if (filteredRecords.length === 0) {
+                paparAlert("Tiada Data", "Sila imbas sekurang-kurangnya satu kertas sebelum mengeksport laporan PDF.");
+                return;
+            }
+
+            let container = document.getElementById('cetakan-analisis-container');
+            
+            // 1. Header Laporan
+            let reportHtml = `
+                <div class="text-center mb-8 text-black">
+                    <h1 class="text-3xl font-bold uppercase underline">Laporan Analisis CikguScan</h1>
+                    <p class="text-xl font-medium mt-2">Kelas: ${filterValue}</p>
+                    <p class="text-sm font-medium text-gray-500 mt-1">Tarikh Jana: ${new Date().toLocaleDateString('ms-MY')}</p>
+                </div>
+            `;
+
+            // 2. Analisis Kelas
+            reportHtml += `
+                <div class="mb-10 text-black">
+                    <h2 class="text-xl font-bold border-b-2 border-black pb-2 mb-4 uppercase">1. Ringkasan & Taburan Kelas</h2>
+                    ${renderAnalisisKelasHtml(filteredRecords)}
+                </div>
+            `;
+
+            // 3. Analisis Item
+            reportHtml += `
+                <div class="mb-10 print-page-break text-black">
+                    <h2 class="text-xl font-bold border-b-2 border-black pb-2 mb-4 uppercase">2. Analisis Item</h2>
+                    ${renderAnalisisItemHtml(filteredRecords)}
+                </div>
+            `;
+
+            // 4. Senarai Individu (Table)
+            let tableIndividu = `<table class="w-full text-left border-collapse mt-4 text-sm text-black">
+                <thead class="bg-gray-100 border-b border-gray-300 font-bold uppercase">
+                    <tr>
+                        <th class="p-2 border border-gray-300 w-12 text-center">Bil</th>
+                        <th class="p-2 border border-gray-300">Keratan Nama</th>
+                        <th class="p-2 border border-gray-300 text-center w-24">Markah</th>
+                        <th class="p-2 border border-gray-300 text-center w-24">Peratus</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            
+            let sortedIndividu = [...filteredRecords].sort((a,b) => b.markah - a.markah);
+            
+            sortedIndividu.forEach((rekod, index) => {
+                tableIndividu += `
+                    <tr class="border-b border-gray-300">
+                        <td class="p-2 border border-gray-300 text-center font-medium">${index + 1}</td>
+                        <td class="p-2 border border-gray-300">
+                            ${rekod.imejNama ? `<img src="${rekod.imejNama}" class="h-8 sm:h-10 object-contain" style="filter: grayscale(100%) contrast(180%);" />` : '-'}
+                        </td>
+                        <td class="p-2 border border-gray-300 text-center font-bold">${rekod.markah}/${JUMLAH_SOALAN}</td>
+                        <td class="p-2 border border-gray-300 text-center font-bold">${rekod.peratus}%</td>
+                    </tr>
+                `;
+            });
+            tableIndividu += `</tbody></table>`;
+
+            reportHtml += `
+                <div class="print-page-break text-black">
+                    <h2 class="text-xl font-bold border-b-2 border-black pb-2 mb-4 uppercase">3. Senarai Markah Individu</h2>
+                    ${tableIndividu}
+                </div>
+            `;
+
+            container.innerHTML = reportHtml;
+
+            // Trigger Print Mode untuk cetak Analisis
+            updatePageOrientation('analisis');
+            document.body.classList.add('mode-cetak-analisis');
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => { 
+                    document.body.classList.remove('mode-cetak-analisis');
+                    updatePageOrientation('omr');
+                }, 500);
+            }, 300);
+        }
 
         // ==========================================
         // SETTING SKEMA & CETAK
@@ -1289,7 +1409,7 @@
         }
 
         function cetakSkema() {
-            updatePageOrientation();
+            updatePageOrientation('omr');
             janaBorangSkemaOMR();
             document.body.classList.add('mode-cetak-skema');
             window.print();
@@ -1327,7 +1447,7 @@
             const labelOrientasi = document.getElementById('label-orientasi');
             let textDesc = document.querySelector('#tab-cetak p.text-sm.text-apple-textMuted');
             bekas.innerHTML = '';
-            updatePageOrientation();
+            updatePageOrientation('omr');
 
             let colCount = (JUMLAH_SOALAN <= 20) ? 4 : 2;
             if (JUMLAH_SOALAN <= 20) {
@@ -1355,14 +1475,16 @@
         // ==========================================
         // FUNGSI KEMAS KINI ORIENTASI HALAMAN
         // ==========================================
-        function updatePageOrientation() {
+        function updatePageOrientation(mode = 'omr') {
             let styleTag = document.getElementById('dynamic-print-style');
             if (!styleTag) {
                 styleTag = document.createElement('style');
                 styleTag.id = 'dynamic-print-style';
                 document.head.appendChild(styleTag);
             }
-            if (JUMLAH_SOALAN <= 20) {
+            if (mode === 'analisis') {
+                styleTag.innerHTML = "@media print { @page { size: A4 portrait; margin: 15mm; } }";
+            } else if (JUMLAH_SOALAN <= 20) {
                 styleTag.innerHTML = "@media print { @page { size: A4 portrait; margin: 15mm; } }";
             } else {
                 styleTag.innerHTML = "@media print { @page { size: A4 landscape; margin: 15mm; } }";
@@ -2184,7 +2306,7 @@
             let btnPrintSkema = document.getElementById('btn-print-skema');
             if(btnPrintSkema) btnPrintSkema.classList.add('hidden');
             
-            updatePageOrientation();
+            updatePageOrientation('omr');
             janaBorangSkema();
             janaBorangCetak();
         }
