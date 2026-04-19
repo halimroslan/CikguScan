@@ -667,11 +667,29 @@
             try {
                 let action = isLoginMode ? 'login' : 'register';
                 
+                // --- LOGIK BAHARU: DEVICE FINGERPRINTING ---
                 let deviceId = localStorage.getItem('cikguscan_device_id');
                 if (!deviceId) {
-                    deviceId = crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Math.random().toString(36).substr(2, 9);
+                    let deviceInfo = [
+                        navigator.userAgent,
+                        window.screen.width,
+                        window.screen.height,
+                        window.screen.colorDepth,
+                        navigator.language,
+                        navigator.hardwareConcurrency || 1
+                    ].join('||');
+                    
+                    let hash = 0;
+                    for (let i = 0; i < deviceInfo.length; i++) {
+                        let chr = deviceInfo.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + chr;
+                        hash |= 0; 
+                    }
+                    
+                    deviceId = 'dev-' + Math.abs(hash).toString(36) + '-' + window.screen.width;
                     localStorage.setItem('cikguscan_device_id', deviceId);
                 }
+                // --- TAMAT LOGIK BAHARU ---
                 
                 let payload = {
                     action: action,
