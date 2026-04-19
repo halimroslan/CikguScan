@@ -116,9 +116,9 @@
     <!-- PAPARAN LOG MASUK / PENDAFTARAN -->
     <div id="auth-view" class="min-h-screen flex items-center justify-center p-4 relative hidden">
         <div class="bg-white w-full max-w-md rounded-[32px] p-8 sm:p-10 shadow-apple border border-apple-border/40 relative z-10 flex flex-col">
-            <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 bg-apple-blue/10 rounded-2xl flex items-center justify-center">
-                    <svg class="w-10 h-10 text-apple-blue drop-shadow-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="flex items-center justify-center gap-3 mb-8">
+                <div class="w-14 h-14 bg-apple-blue/10 rounded-2xl flex items-center justify-center">
+                    <svg class="w-8 h-8 text-apple-blue drop-shadow-sm" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="6.5" y="5.5" width="11" height="13" rx="3.5" fill="currentColor" fill-opacity="0.2" />
                         <path d="M8 4H6.5C5.11929 4 4 5.11929 4 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <path d="M16 4H17.5C18.8807 4 20 5.11929 20 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -127,8 +127,9 @@
                         <path d="M2 12H22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                     </svg>
                 </div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-apple-text">CikguScan</h1>
             </div>
-            <h2 id="auth-title" class="text-2xl sm:text-3xl font-extrabold text-center text-apple-text mb-2 tracking-tight">Log Masuk</h2>
+            <h2 id="auth-title" class="text-xl sm:text-2xl font-bold text-center text-apple-text mb-2 tracking-tight">Log Masuk</h2>
             <p id="auth-subtitle" class="text-sm font-medium text-center text-apple-textMuted mb-8">Sila masukkan e-mel dan kata laluan anda.</p>
 
             <form id="auth-form" onsubmit="handleAuth(event)" class="flex flex-col gap-4">
