@@ -580,7 +580,7 @@
                         localStorage.setItem('cikguscan_pro_bulan_' + email, result.proBulan);
                     }
                     if (!isLoginMode) {
-                        paparAlert("Berjaya!", "Akaun anda telah disahkan dan disimpan di pelayan.");
+                        paparAlert("Pendaftaran berjaya!");
                     }
                     checkAuth();
                 } else {
@@ -861,7 +861,7 @@
             if (idTab === 'analisis') {
                 let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
                 if (proBulan <= 0) {
-                    paparAlert("Akses Disekat (Ciri Pro 👑)", "Maaf cikgu, bahagian Analisis Keseluruhan (Individu, Kelas & Item) adalah khas untuk pengguna Pro sahaja. Sila langgan untuk menggunakan fungsi ini.");
+                    paparAlert("Akses Terhad.", "Khas langganan Pro sahaja.");
                     return; // Hentikan fungsi tukar tab
                 }
             }
