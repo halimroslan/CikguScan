@@ -1398,16 +1398,12 @@
                 document.title = `Analisis Kelas ${filterValue} Cikgu Scan`;
             }
 
+            document.body.classList.remove('mode-cetak-skema');
             updatePageOrientation('analisis');
             document.body.classList.add('mode-cetak-analisis');
             
             setTimeout(() => {
                 window.print();
-                setTimeout(() => { 
-                    document.body.classList.remove('mode-cetak-analisis');
-                    updatePageOrientation('omr');
-                    document.title = originalTitle;
-                }, 500);
             }, 300);
         }
 
@@ -1460,16 +1456,13 @@
             const originalTitle = document.title;
             document.title = "CikguScan OMR Skema";
 
+            document.body.classList.remove('mode-cetak-analisis');
             updatePageOrientation('omr');
             janaBorangSkemaOMR();
             document.body.classList.add('mode-cetak-skema');
             
             setTimeout(() => { 
                 window.print();
-                setTimeout(() => { 
-                    document.body.classList.remove('mode-cetak-skema'); 
-                    document.title = originalTitle;
-                }, 500);
             }, 300);
         }
 
@@ -1477,11 +1470,11 @@
             const originalTitle = document.title;
             document.title = `CikguScan OMR ${JUMLAH_SOALAN} soalan`;
 
+            document.body.classList.remove('mode-cetak-analisis', 'mode-cetak-skema');
+            updatePageOrientation('omr');
+
             setTimeout(() => {
                 window.print();
-                setTimeout(() => {
-                    document.title = originalTitle;
-                }, 500);
             }, 300);
         }
 
