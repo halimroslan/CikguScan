@@ -1366,6 +1366,15 @@
 
             container.innerHTML = reportHtml;
 
+            // Simpan title asal
+            const originalTitle = document.title;
+            // Tetapkan title baharu untuk PDF
+            if (filterValue === 'Semua') {
+                document.title = "Analisis Keseluruhan Cikgu Scan";
+            } else {
+                document.title = `Analisis Kelas ${filterValue} Cikgu Scan`;
+            }
+
             // Trigger Print Mode untuk cetak Analisis
             updatePageOrientation('analisis');
             document.body.classList.add('mode-cetak-analisis');
@@ -1375,6 +1384,8 @@
                 setTimeout(() => { 
                     document.body.classList.remove('mode-cetak-analisis');
                     updatePageOrientation('omr');
+                    // Kembalikan title asal
+                    document.title = originalTitle;
                 }, 500);
             }, 300);
         }
