@@ -483,6 +483,7 @@
         // ==========================================
         let currentUser = null;
         let isLoginMode = true;
+        let trialInterval = null;
 
         let JUMLAH_SOALAN = 40;
         const PILIHAN = ['A', 'B', 'C', 'D'];
@@ -527,31 +528,12 @@
             document.title = "CikguScan OMR";
         });
 
-        // Cek secara berterusan jika tempoh percubaan tamat semasa pengguna sedang guna
-        setInterval(() => {
-            if (!currentUser) return;
-            let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-            if (proBulan > 0) return; 
-
-            let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-            if (!regTimeStr) return;
-
-            let diffHours = (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60);
-            let wasTrial = localStorage.getItem('cikguscan_was_trial_' + currentUser) === 'true';
-
-            if (diffHours > 24 && wasTrial) {
-                localStorage.removeItem('cikguscan_was_trial_' + currentUser);
-                localStorage.removeItem('cikguscan_current_user');
-                currentUser = null;
-                document.getElementById('auth-view').classList.remove('hidden');
-                document.getElementById('auth-view').classList.add('flex');
-                document.getElementById('main-app-view').classList.add('hidden');
-                document.getElementById('auth-password').value = '';
-                paparAlert("Tempoh Cubaan Tamat ⏱️", "Akses cubaan fungsi Pro selama 24 jam telah tamat. Anda dilog keluar secara automatik. Sila log masuk semula untuk meneruskan dengan akaun Percuma.");
-            }
-        }, 60000); // Check setiap 1 minit
-
         function checkAuth() {
+            if (trialInterval) {
+                clearInterval(trialInterval);
+                trialInterval = null;
+            }
+
             currentUser = localStorage.getItem('cikguscan_current_user');
             if (currentUser) {
                 document.getElementById('auth-view').classList.add('hidden');
@@ -560,33 +542,24 @@
                 document.getElementById('header-user-email').innerText = currentUser;
 
                 let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-                
-                // Daftar masa percubaan jika belum wujud secara lokal untuk pengguna baharu/sedia ada
-                let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-                if (!regTimeStr && proBulan <= 0) {
-                    regTimeStr = new Date().toISOString();
-                    localStorage.setItem('cikguscan_reg_time_' + currentUser, regTimeStr);
-                }
+                let trialFinished = localStorage.getItem('cikguscan_trial_finished_' + currentUser) === 'true';
+                let trialStart = localStorage.getItem('cikguscan_trial_start_' + currentUser);
+                let isTrialActive = false;
+                let secondsLeft = 0;
 
-                let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
-                let isTrial = false;
+                if (proBulan <= 0 && !trialFinished) {
+                    if (!trialStart) {
+                        trialStart = Date.now();
+                        localStorage.setItem('cikguscan_trial_start_' + currentUser, trialStart);
+                    }
+                    let elapsed = Math.floor((Date.now() - parseInt(trialStart)) / 1000);
+                    secondsLeft = 30 - elapsed;
 
-                if (proBulan <= 0) {
-                    if (diffHours <= 24) {
-                        isTrial = true;
-                        localStorage.setItem('cikguscan_was_trial_' + currentUser, 'true');
+                    if (secondsLeft > 0) {
+                        isTrialActive = true;
                     } else {
-                        if (localStorage.getItem('cikguscan_was_trial_' + currentUser) === 'true') {
-                            localStorage.removeItem('cikguscan_was_trial_' + currentUser);
-                            localStorage.removeItem('cikguscan_current_user');
-                            currentUser = null;
-                            document.getElementById('auth-view').classList.remove('hidden');
-                            document.getElementById('auth-view').classList.add('flex');
-                            document.getElementById('main-app-view').classList.add('hidden');
-                            document.getElementById('auth-password').value = '';
-                            paparAlert("Tempoh Cubaan Tamat ⏱️", "Akses cubaan fungsi Pro selama 24 jam telah tamat. Anda dilog keluar secara automatik. Sila log masuk semula untuk meneruskan dengan akaun Percuma.");
-                            return; 
-                        }
+                        localStorage.setItem('cikguscan_trial_finished_' + currentUser, 'true');
+                        trialFinished = true;
                     }
                 }
 
@@ -599,12 +572,35 @@
                         statusEl.classList.remove('text-apple-textMuted', 'text-orange-500');
                         statusEl.classList.add('text-apple-blue');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
-                    } else if (isTrial) {
-                        let hoursLeft = Math.max(1, Math.floor(24 - diffHours));
-                        statusEl.innerText = `CUBAAN PRO (${hoursLeft} JAM)`;
+                    } else if (isTrialActive) {
+                        statusEl.innerText = `CUBAAN PRO (${secondsLeft}s)`;
                         statusEl.classList.remove('text-apple-textMuted', 'text-apple-blue');
                         statusEl.classList.add('text-orange-500');
                         if (btnKelas) btnKelas.parentElement.classList.remove('hidden');
+
+                        trialInterval = setInterval(() => {
+                            let now = Date.now();
+                            let start = parseInt(localStorage.getItem('cikguscan_trial_start_' + currentUser));
+                            let elap = Math.floor((now - start) / 1000);
+                            let left = 30 - elap;
+
+                            if (left <= 0) {
+                                clearInterval(trialInterval);
+                                localStorage.setItem('cikguscan_trial_finished_' + currentUser, 'true');
+                                localStorage.removeItem('cikguscan_current_user');
+                                currentUser = null;
+                                document.getElementById('auth-view').classList.remove('hidden');
+                                document.getElementById('auth-view').classList.add('flex');
+                                document.getElementById('main-app-view').classList.add('hidden');
+                                document.getElementById('auth-password').value = '';
+                                paparAlert("Tempoh Cubaan Tamat ⏱️", "Masa 30 saat percubaan Pro telah tamat. Anda dilog keluar secara automatik. Sila log masuk semula untuk meneruskan dengan akaun Percuma.");
+                            } else {
+                                if (document.getElementById('header-user-status')) {
+                                    document.getElementById('header-user-status').innerText = `CUBAAN PRO (${left}s)`;
+                                }
+                            }
+                        }, 1000);
+
                     } else {
                         statusEl.innerText = "AKAUN (PERCUMA)";
                         statusEl.classList.remove('text-apple-blue', 'text-orange-500');
@@ -673,11 +669,6 @@
                     localStorage.setItem('cikguscan_current_user', email);
                     if (result.proBulan !== undefined) {
                         localStorage.setItem('cikguscan_pro_bulan_' + email, result.proBulan);
-                    }
-                    
-                    // Pastikan tarikh bermulanya langganan dicatat dalam peranti supaya trial boleh dikira
-                    if (!localStorage.getItem('cikguscan_reg_time_' + email)) {
-                        localStorage.setItem('cikguscan_reg_time_' + email, new Date().toISOString());
                     }
 
                     if (!isLoginMode) {
@@ -972,13 +963,11 @@
         // ==========================================
         function tukarTab(idTab) {
             let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-            let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-            let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
-            let isTrial = (proBulan <= 0 && diffHours <= 24);
+            let trialFinished = localStorage.getItem('cikguscan_trial_finished_' + currentUser) === 'true';
 
             // --- KUNCI BAHAGIAN ANALISIS UNTUK PENGGUNA BUKAN PRO & BUKAN TRIAL ---
             if (idTab === 'analisis') {
-                if (proBulan <= 0 && !isTrial) {
+                if (proBulan <= 0 && trialFinished) {
                     paparAlert("Akses Terhad.", "Khas langganan Pro sahaja.", true);
                     return; // Hentikan fungsi tukar tab
                 }
@@ -1015,7 +1004,7 @@
                     banner.classList.add('hidden');
                 }
                 
-                if (proBulan > 0 || isTrial) {
+                if (proBulan > 0 || !trialFinished) {
                     if (kelasSemasa === "Kelas Umum" || kelasSemasa.trim() === "") {
                         bukaModalKelas();
                     } else {
@@ -1373,19 +1362,24 @@
 
             container.innerHTML = reportHtml;
 
+            const originalTitle = document.title;
             if (filterValue === 'Semua') {
                 document.title = "Analisis Keseluruhan Cikgu Scan";
             } else {
                 document.title = `Analisis Kelas ${filterValue} Cikgu Scan`;
             }
 
-            // Trigger Print Mode untuk cetak Analisis
             updatePageOrientation('analisis');
             document.body.classList.add('mode-cetak-analisis');
             
             setTimeout(() => {
                 window.print();
-            }, 500);
+                setTimeout(() => { 
+                    document.body.classList.remove('mode-cetak-analisis');
+                    updatePageOrientation('omr');
+                    document.title = originalTitle;
+                }, 500);
+            }, 300);
         }
 
         // ==========================================
@@ -1434,6 +1428,7 @@
         }
 
         function cetakSkema() {
+            const originalTitle = document.title;
             document.title = "CikguScan OMR Skema";
 
             updatePageOrientation('omr');
@@ -1442,15 +1437,23 @@
             
             setTimeout(() => { 
                 window.print();
-            }, 500);
+                setTimeout(() => { 
+                    document.body.classList.remove('mode-cetak-skema'); 
+                    document.title = originalTitle;
+                }, 500);
+            }, 300);
         }
 
         function cetakBorangOMR() {
+            const originalTitle = document.title;
             document.title = `CikguScan OMR ${JUMLAH_SOALAN} soalan`;
 
             setTimeout(() => {
                 window.print();
-            }, 500);
+                setTimeout(() => {
+                    document.title = originalTitle;
+                }, 500);
+            }, 300);
         }
 
         function janaBorangSkemaOMR() {
@@ -2230,11 +2233,9 @@
             // Simpan Rekod
             let peratus = (markah / JUMLAH_SOALAN) * 100;
             let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-            let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-            let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
-            let isTrial = (proBulan <= 0 && diffHours <= 24);
+            let trialFinished = localStorage.getItem('cikguscan_trial_finished_' + currentUser) === 'true';
             
-            if (proBulan > 0 || isTrial) {
+            if (proBulan > 0 || !trialFinished) {
                 let rekodBaharu = {
                     id: idUntukGanti ? idUntukGanti : Date.now(),
                     markah: markah,
@@ -2274,9 +2275,7 @@
             tukarTab('keputusan'); 
             let peratus = (markah / JUMLAH_SOALAN) * 100;
             let proBulan = parseInt(localStorage.getItem('cikguscan_pro_bulan_' + currentUser)) || 0;
-            let regTimeStr = localStorage.getItem('cikguscan_reg_time_' + currentUser);
-            let diffHours = regTimeStr ? (new Date() - new Date(regTimeStr)) / (1000 * 60 * 60) : 999;
-            let isTrial = (proBulan <= 0 && diffHours <= 24);
+            let trialFinished = localStorage.getItem('cikguscan_trial_finished_' + currentUser) === 'true';
             
             document.getElementById('skor-markah').innerText = markah;
             document.getElementById('skor-total').innerText = `/${JUMLAH_SOALAN}`;
@@ -2286,7 +2285,7 @@
             let separatorKelas = document.getElementById('skor-separator');
             let btnPadamSemasa = document.getElementById('btn-padam-semasa');
             
-            if (proBulan > 0 || isTrial) {
+            if (proBulan > 0 || !trialFinished) {
                 if(labelKelas) {
                     labelKelas.innerText = kelasSemasa;
                     labelKelas.classList.remove('hidden');
