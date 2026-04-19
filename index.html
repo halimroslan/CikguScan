@@ -528,7 +528,7 @@
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? "Log Masuk" : "Daftar Akaun Baru";
-            document.getElementById('auth-subtitle').innerText = isLoginMode ? "Sila masukkan e-mel dan kata laluan anda." : "Cipta akaun untuk menyimpan rekod data kelas anda.";
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? "Sila masukkan e-mel dan kata laluan anda." : "E-mel ini akan digunakan untuk log masuk dan menerima salinan kata laluan.";
             document.getElementById('auth-btn').innerText = isLoginMode ? "Teruskan ke Sistem" : "Daftar & Mula Guna";
             document.getElementById('auth-toggle-btn').innerText = isLoginMode ? "Belum ada akaun? Daftar percuma." : "Sudah ada akaun? Log masuk di sini.";
         }
@@ -580,7 +580,7 @@
                         localStorage.setItem('cikguscan_pro_bulan_' + email, result.proBulan);
                     }
                     if (!isLoginMode) {
-                        paparAlert("Pendaftaran berjaya!");
+                        paparAlert("Pendaftaran Berjaya!", "Sila semak e-mel anda (termasuk folder spam) untuk rujukan kata laluan pada masa akan datang.");
                     }
                     checkAuth();
                 } else {
