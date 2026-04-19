@@ -567,9 +567,7 @@
 
                 let response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
+                    // Menghilangkan 'headers' untuk memastikan ia adalah Simple Request dan tidak disekat oleh CORS.
                     body: JSON.stringify(payload)
                 });
 
