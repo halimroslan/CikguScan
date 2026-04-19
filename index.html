@@ -634,7 +634,7 @@
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTos7a4OaaZ3aN22XeP3ZxK9PitM4nBdq9kCvY8xSSE_MHlkuKxHZnRgbbTqvhZLL4aA/exec";
 
             let textAsal = btn.innerText;
-            btn.innerText = "Pengesahan";
+            btn.innerText = "Sedang Menyemak...";
             btn.disabled = true;
             btn.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -1290,10 +1290,24 @@
             
             // 1. Header Laporan
             let reportHtml = `
-                <div class="text-center mb-8 text-black">
-                    <h1 class="text-3xl font-bold uppercase underline">Laporan Analisis CikguScan</h1>
-                    <p class="text-xl font-medium mt-2">Kelas: ${filterValue}</p>
-                    <p class="text-sm font-medium text-gray-500 mt-1">Tarikh Jana: ${new Date().toLocaleDateString('ms-MY')}</p>
+                <div class="text-center mb-8 text-black border-b-2 border-gray-200 pb-6">
+                    <div class="flex items-center justify-center gap-2 mb-3">
+                        <svg class="w-10 h-10 text-apple-blue" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6.5" y="5.5" width="11" height="13" rx="3.5" fill="currentColor" fill-opacity="0.2" />
+                            <path d="M8 4H6.5C5.11929 4 4 5.11929 4 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 4H17.5C18.8807 4 20 5.11929 20 6.5V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M8 20H6.5C5.11929 20 4 18.8807 4 17.5V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 20H17.5C18.8807 20 20 18.8807 20 17.5V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M2 12H22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                        <div class="flex flex-col items-start">
+                            <h1 class="text-3xl font-extrabold tracking-tight text-apple-text leading-none">CikguScan</h1>
+                            <span class="text-[10px] font-bold text-apple-textMuted uppercase tracking-widest mt-0.5">By Sir Halim</span>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold uppercase tracking-tight mt-4">Laporan Analisis</h2>
+                    <p class="text-lg font-medium mt-1 text-gray-600">Kelas: <span class="text-black font-bold">${filterValue}</span></p>
+                    <p class="text-xs font-medium text-gray-400 mt-2">Tarikh Jana: ${new Date().toLocaleDateString('ms-MY')}</p>
                 </div>
             `;
 
@@ -1315,12 +1329,13 @@
 
             // 4. Senarai Individu (Table)
             let tableIndividu = `<table class="w-full text-left border-collapse mt-4 text-sm text-black">
-                <thead class="bg-gray-100 border-b border-gray-300 font-bold uppercase">
+                <thead class="bg-gray-100 border-b border-gray-300 font-bold uppercase text-[11px] tracking-wider text-gray-600">
                     <tr>
-                        <th class="p-2 border border-gray-300 w-12 text-center">Bil</th>
-                        <th class="p-2 border border-gray-300">Keratan Nama</th>
-                        <th class="p-2 border border-gray-300 text-center w-24">Markah</th>
-                        <th class="p-2 border border-gray-300 text-center w-24">Peratus</th>
+                        <th class="p-3 border border-gray-300 w-12 text-center">Bil</th>
+                        <th class="p-3 border border-gray-300">Keratan Nama</th>
+                        <th class="p-3 border border-gray-300 text-center w-28">Kelas</th>
+                        <th class="p-3 border border-gray-300 text-center w-24">Markah</th>
+                        <th class="p-3 border border-gray-300 text-center w-24">Peratus</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -1329,13 +1344,14 @@
             
             sortedIndividu.forEach((rekod, index) => {
                 tableIndividu += `
-                    <tr class="border-b border-gray-300">
-                        <td class="p-2 border border-gray-300 text-center font-medium">${index + 1}</td>
-                        <td class="p-2 border border-gray-300">
-                            ${rekod.imejNama ? `<img src="${rekod.imejNama}" class="h-8 sm:h-10 object-contain" style="filter: grayscale(100%) contrast(180%);" />` : '-'}
+                    <tr class="border-b border-gray-300 hover:bg-gray-50 transition-colors">
+                        <td class="p-2 border border-gray-300 text-center font-semibold text-gray-600">${index + 1}</td>
+                        <td class="p-2 border border-gray-300 bg-white">
+                            ${rekod.imejNama ? `<img src="${rekod.imejNama}" class="h-8 sm:h-10 object-contain mx-auto sm:mx-0" style="filter: grayscale(100%) contrast(180%);" />` : '-'}
                         </td>
-                        <td class="p-2 border border-gray-300 text-center font-bold">${rekod.markah}/${JUMLAH_SOALAN}</td>
-                        <td class="p-2 border border-gray-300 text-center font-bold">${rekod.peratus}%</td>
+                        <td class="p-2 border border-gray-300 text-center font-medium text-gray-600">${rekod.kelas || 'Kelas Umum'}</td>
+                        <td class="p-2 border border-gray-300 text-center font-bold text-lg">${rekod.markah}/${JUMLAH_SOALAN}</td>
+                        <td class="p-2 border border-gray-300 text-center font-bold text-lg">${rekod.peratus}%</td>
                     </tr>
                 `;
             });
